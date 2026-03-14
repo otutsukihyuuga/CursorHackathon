@@ -12,6 +12,24 @@ export interface UseFileSaveReturn {
 /**
  * Saves an audio Blob to the user's local filesystem.
  *
+ * Strategy:
+ * 1. File System Access API (showSaveFilePicker) — Chrome 86+, Edge 86+
+ *    Presents a native "Save As" dialog. The file is written directly to
+ *    the chosen path on disk with no copy going to the Downloads folder.
+ *
+ * 2. Fallback: <a download> — all browsers
+ *    Creates a temporary object URL and triggers a programmatic click on a
+ *    hidden anchor element. The browser downloads the file to its configured
+ *    Downloads folder (or shows a "Save As" dialog if the browser is set up
+ *    that way). The object URL is revoked immediately after to free memory.
+ *
+ * Known limitations:
+ * - Firefox: showSaveFilePicker is behind a flag (disabled by default as of 2024).
+ *   The fallback download is used automatically.
+ * - Safari: showSaveFilePicker is not supported. Fallback download is used.
+ * - On iOS/Android, the fallback download behaviour varies by browser and OS
+ *   version. Some mobile browsers may open audio inline rather than saving.
+ * - The File System Access API requires a secure context (HTTPS or localhost).
  */
 export function useFileSave(): UseFileSaveReturn {
   const [saveState, setSaveState] = useState<SaveState>('idle');
@@ -23,9 +41,14 @@ export function useFileSave(): UseFileSaveReturn {
 
     try {
       if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+        // File System Access API path — write directly to chosen location
         const ext = filename.split('.').pop() ?? 'webm';
-        const mimeType = blob.type || `audio/${ext}`;
+        // Strip codec parameters (e.g. "audio/webm;codecs=opus" → "audio/webm")
+        // because showSaveFilePicker's accept object only accepts bare MIME types.
+        const mimeType = (blob.type || `audio/${ext}`).split(';')[0];
 
+        // Type assertion needed because showSaveFilePicker is not yet in
+        // the TypeScript lib DOM types in all TS versions
         const fileHandle = await (
           window as Window & { showSaveFilePicker: (opts: object) => Promise<FileSystemFileHandle> }
         ).showSaveFilePicker({
