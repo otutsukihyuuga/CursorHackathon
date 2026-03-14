@@ -45,7 +45,7 @@ export function useFileSave(): UseFileSaveReturn {
         const ext = filename.split('.').pop() ?? 'webm';
         // Strip codec parameters (e.g. "audio/webm;codecs=opus" → "audio/webm")
         // because showSaveFilePicker's accept object only accepts bare MIME types.
-        const mimeType = (blob.type || `audio/${ext}`).split(';')[0];
+        const mimeType = (blob.type || `audio/${ext}`).split(';')[0].trim();
 
         // Type assertion needed because showSaveFilePicker is not yet in
         // the TypeScript lib DOM types in all TS versions
