@@ -1,0 +1,23 @@
+cn2an
+fastapi>=0.135.1
+huggingface-hub
+inflect
+jieba
+librosa
+lhotse
+linacodec @ git+https://github.com/ysharma3501/LinaCodec.git
+numpy<2
+onnxruntime
+piper-phonemize
+pydub
+pypinyin
+python-multipart>=0.0.22
+safetensors
+soundfile>=0.13.1
+setuptools<81
+tensorboard
+torch==2.2.*
+torchaudio==2.2.*
+transformers<=4.57.6
+uvicorn[standard]>=0.41.0
+vocos

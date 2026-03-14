@@ -1,0 +1,15 @@
+services:
+  voiceback:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: voiceback:latest
+    ports:
+      - "8000:8000"
+    environment:
+      LUXTTS_DEVICE: cpu
+      LUXTTS_DOWNLOAD_WEIGHTS_ON_STARTUP: "true"
+      LUXTTS_CPU_THREADS: "2"
+    volumes:
+      - ./ModelWeights:/app/ModelWeights
+      - ./data:/app/data
