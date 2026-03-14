@@ -67,7 +67,7 @@ export default function AudioRecorder({
       {error && (
         <div
           role="alert"
-          className="bg-red-900/30 border border-red-500/40 text-red-300 rounded-xl px-4 py-3 text-sm"
+          className="bg-red-50 border border-red-300 text-red-700 rounded-xl px-4 py-3 text-sm"
         >
           <span className="font-semibold">Microphone error: </span>
           {error}
@@ -87,7 +87,7 @@ export default function AudioRecorder({
 
       {/* REQUESTING — waiting for browser permission */}
       {state === 'requesting' && (
-        <div className="text-center text-slate-400 py-6 text-sm animate-pulse">
+        <div className="text-center text-slate-600 py-6 text-sm animate-pulse">
           Requesting microphone access…
         </div>
       )}
@@ -107,7 +107,7 @@ export default function AudioRecorder({
             <span className="text-red-400 font-mono font-semibold text-2xl tabular-nums">
               {formatElapsed(elapsedSeconds)}
             </span>
-            <span className="text-slate-400 text-sm">Recording…</span>
+            <span className="text-slate-600 text-sm">Recording…</span>
           </div>
 
           <button
@@ -130,7 +130,7 @@ export default function AudioRecorder({
 
           <button
             onClick={handleDiscard}
-            className="w-full py-2.5 rounded-xl border border-white/20 text-slate-300 hover:bg-white/5 hover:text-white text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="w-full py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
           >
             Discard &amp; Re-record
           </button>
