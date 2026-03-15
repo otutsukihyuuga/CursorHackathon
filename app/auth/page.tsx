@@ -48,7 +48,7 @@ export default function AuthPage() {
           Back
         </Link>
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-900 mb-6">EchoVoice</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-6">Elevate</h1>
           <div className="flex rounded-lg bg-slate-100 p-1 mb-6">
             <button
               type="button"
