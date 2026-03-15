@@ -35,20 +35,16 @@ export default function HomePage() {
           <div className="space-y-12">
             
             {/* Step 1: The Problem */}
-            <div className="relative flex flex-col sm:flex-row items-center sm:justify-between w-full group">
-              {/* Left side (Student Picture) */}
-              <div className="w-full sm:w-[45%] flex sm:justify-end mb-4 sm:mb-0 pl-24 sm:pl-0 sm:pr-8">
-                {/* Placeholder for the student picture the user will send */}
-                <div className="w-32 h-32 md:w-40 md:h-40 bg-slate-200 border-4 border-white rounded-2xl shadow-md flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10">
-                  <span className="text-slate-400 text-sm font-medium px-4 text-center">Student Image Placeholder</span>
-                </div>
-              </div>
+            <div className="relative flex flex-col sm:flex-row items-center sm:justify-between w-full group min-h-[4rem]">
+              <div className="w-full sm:w-[45%] pr-8 hidden sm:block"></div>
 
               {/* Center marker */}
-              <div className="absolute left-6 sm:left-1/2 w-8 h-8 rounded-full bg-white border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors"></div>
+              <div className="absolute left-2 sm:left-1/2 w-16 h-16 rounded-full bg-slate-100 border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors overflow-hidden flex items-center justify-center">
+                {/* Image placeholder */}
+              </div>
 
               {/* Right side (Text) */}
-              <div className="w-full sm:w-[45%] pl-24 sm:pl-8">
+              <div className="w-full sm:w-[45%] pl-24 sm:pl-10 py-2">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                   <h3 className="text-lg font-bold text-slate-800 mb-1">The Struggle</h3>
                   <p className="text-slate-600">As a student, you feel overwhelmed and inundated.</p>
@@ -57,57 +53,57 @@ export default function HomePage() {
             </div>
 
             {/* Step 2 */}
-            <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group">
-              <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-24 sm:pl-8">
+            <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group min-h-[4rem]">
+              <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-24 sm:pl-10 py-2">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                   <p className="text-slate-600 font-medium">Choose a voice of your mentor or clone the voice of your loved ones.</p>
                 </div>
               </div>
-              <div className="absolute left-6 sm:left-1/2 w-8 h-8 rounded-full bg-white border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors"></div>
+              <div className="absolute left-2 sm:left-1/2 w-16 h-16 rounded-full bg-slate-100 border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors overflow-hidden flex items-center justify-center"></div>
               <div className="w-full sm:w-[45%] pr-8 hidden sm:block"></div>
             </div>
 
             {/* Step 3 */}
-            <div className="relative flex flex-col sm:flex-row items-center sm:justify-between w-full group">
-              <div className="w-full sm:w-[45%] flex sm:justify-end mb-4 sm:mb-0 pl-24 sm:pl-0 sm:pr-8">
+            <div className="relative flex flex-col sm:flex-row items-center sm:justify-between w-full group min-h-[4rem]">
+              <div className="w-full sm:w-[45%] flex sm:justify-end mb-4 sm:mb-0 pl-24 sm:pl-0 sm:pr-10 py-2">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 w-full text-left sm:text-right">
                   <p className="text-slate-600 font-medium">Chat with your best personalized AI assistant.</p>
                 </div>
               </div>
-              <div className="absolute left-6 sm:left-1/2 w-8 h-8 rounded-full bg-white border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors"></div>
+              <div className="absolute left-2 sm:left-1/2 w-16 h-16 rounded-full bg-slate-100 border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors overflow-hidden flex items-center justify-center"></div>
               <div className="w-full sm:w-[45%] pl-8 hidden sm:block"></div>
             </div>
 
             {/* Step 4 */}
-            <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group">
-              <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-24 sm:pl-8">
+            <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group min-h-[4rem]">
+              <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-24 sm:pl-10 py-2">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                   <p className="text-slate-600 font-medium">Create skills, create agent skills, and give them to other students as well.</p>
                 </div>
               </div>
-              <div className="absolute left-6 sm:left-1/2 w-8 h-8 rounded-full bg-white border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors"></div>
+              <div className="absolute left-2 sm:left-1/2 w-16 h-16 rounded-full bg-slate-100 border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors overflow-hidden flex items-center justify-center"></div>
               <div className="w-full sm:w-[45%] pr-8 hidden sm:block"></div>
             </div>
 
             {/* Step 5 */}
-            <div className="relative flex flex-col sm:flex-row items-center sm:justify-between w-full group">
-              <div className="w-full sm:w-[45%] flex sm:justify-end mb-4 sm:mb-0 pl-24 sm:pl-0 sm:pr-8">
+            <div className="relative flex flex-col sm:flex-row items-center sm:justify-between w-full group min-h-[4rem]">
+              <div className="w-full sm:w-[45%] flex sm:justify-end mb-4 sm:mb-0 pl-24 sm:pl-0 sm:pr-10 py-2">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 w-full text-left sm:text-right">
                   <p className="text-slate-600 font-medium">Track and analyze your mood based on the mood meter.</p>
                 </div>
               </div>
-              <div className="absolute left-6 sm:left-1/2 w-8 h-8 rounded-full bg-white border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors"></div>
+              <div className="absolute left-2 sm:left-1/2 w-16 h-16 rounded-full bg-slate-100 border-4 border-indigo-200 shadow-sm sm:-translate-x-1/2 z-10 group-hover:border-indigo-400 transition-colors overflow-hidden flex items-center justify-center"></div>
               <div className="w-full sm:w-[45%] pl-8 hidden sm:block"></div>
             </div>
 
             {/* Step 6 */}
-            <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group">
-              <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-24 sm:pl-8">
+            <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group min-h-[4rem]">
+              <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-24 sm:pl-10 py-2">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100 shadow-indigo-100 text-indigo-900 border-2">
                   <p className="font-bold">Have a healthy competition with other peers.</p>
                 </div>
               </div>
-              <div className="absolute left-6 sm:left-1/2 w-8 h-8 rounded-full bg-white border-4 border-indigo-400 shadow-md sm:-translate-x-1/2 z-10"></div>
+              <div className="absolute left-2 sm:left-1/2 w-16 h-16 rounded-full bg-slate-100 border-4 border-indigo-400 shadow-md sm:-translate-x-1/2 z-10 overflow-hidden flex items-center justify-center"></div>
               <div className="w-full sm:w-[45%] pr-8 hidden sm:block"></div>
             </div>
 
