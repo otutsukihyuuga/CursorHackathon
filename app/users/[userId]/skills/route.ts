@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getBackendUrl } from '@/lib/config';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   const { userId } = await params;
@@ -68,7 +68,7 @@ export async function POST(
       },
       body: JSON.stringify({
         name: body.name,
-        skill_text_context: body.skill_text_context,
+        skill_text_content: body.skill_text_context,
         is_public: body.is_public ?? false,
       }),
     });

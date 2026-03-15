@@ -5,16 +5,35 @@ import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 
-interface AgentSkillRecord {
+interface AgentSkillApiRecord {
   id: number;
-  user_id: number;
+  user_id: number | null;
   is_public: boolean;
   name: string;
-  skill_text_context: string;
+  skill_text_content?: string;
+  skill_text_context?: string;
   created_at: string;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '') ?? '';
+interface AgentSkillRecord {
+  id: number;
+  user_id: number | null;
+  is_public: boolean;
+  name: string;
+  skill_text_content: string;
+  created_at: string;
+}
+
+function normalizeSkillRecord(skill: AgentSkillApiRecord): AgentSkillRecord {
+  return {
+    id: skill.id,
+    user_id: skill.user_id,
+    is_public: skill.is_public,
+    name: skill.name,
+    skill_text_content: skill.skill_text_content ?? skill.skill_text_context ?? '',
+    created_at: skill.created_at,
+  };
+}
 
 export default function AgentSkillsPage() {
   const { user } = useAuth();
@@ -25,24 +44,7 @@ export default function AgentSkillsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-
-  const decodeBinaryString = useCallback((binary: string) => {
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  }, []);
-
-  const encodeBinaryString = useCallback(async (file: File) => {
-    const buffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    const chunkSize = 0x8000;
-
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-
-    return binary;
-  }, []);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
 
   const selectedSummary = useMemo(
     () => skills.find((skill) => skill.id === selectedSkillId) ?? null,
@@ -55,19 +57,19 @@ export default function AgentSkillsPage() {
     setLoadingList(true);
     setError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/users/${encodeURIComponent(String(user.id))}/skills`, {
+      const res = await fetch(`/users/${encodeURIComponent(String(user.id))}/skills`, {
         headers: {
           'X-User-Id': String(user.id),
         },
       });
-      const data = (await res.json()) as AgentSkillRecord[] | { error?: string };
+      const data = (await res.json()) as AgentSkillApiRecord[] | { error?: string };
       if (!res.ok) {
         throw new Error(
           typeof data === 'object' && !Array.isArray(data) ? (data.error ?? 'Failed to load skills') : 'Failed to load skills'
         );
       }
 
-      const nextSkills = Array.isArray(data) ? data : [];
+      const nextSkills = Array.isArray(data) ? data.map(normalizeSkillRecord) : [];
       setSkills(nextSkills);
       setSelectedSkillId((current) => {
         if (current != null && nextSkills.some((skill) => skill.id === current)) {
@@ -101,9 +103,9 @@ export default function AgentSkillsPage() {
     setError(null);
 
     try {
-      const contentBinary = await encodeBinaryString(file);
+      const skillText = await file.text();
 
-      const res = await fetch(`${BACKEND_URL}/users/${encodeURIComponent(String(user.id))}/skills`, {
+      const res = await fetch(`/users/${encodeURIComponent(String(user.id))}/skills`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +113,7 @@ export default function AgentSkillsPage() {
         },
         body: JSON.stringify({
           name: file.name.replace(/\.md$/i, ''),
-          skill_text_context: contentBinary,
+          skill_text_context: skillText,
           is_public: false,
         }),
       });
@@ -121,7 +123,7 @@ export default function AgentSkillsPage() {
         throw new Error(data.error ?? 'Failed to create skill');
       }
 
-      const createdSkill = (await res.json().catch(() => null)) as AgentSkillRecord | null;
+      const createdSkill = (await res.json().catch(() => null)) as AgentSkillApiRecord | null;
 
       await loadSkills();
       if (createdSkill?.id != null) {
@@ -146,8 +148,8 @@ export default function AgentSkillsPage() {
 
   return (
     <div className="flex-1 min-h-0 bg-slate-50 overflow-hidden">
-      <div className="h-full grid grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="border-r border-slate-200 bg-white p-4 overflow-y-auto">
+      <div className="h-full flex flex-col sm:grid sm:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className={`border-r border-slate-200 bg-white p-4 overflow-y-auto sm:block ${mobileDetailOpen ? 'hidden' : 'block flex-1'}`}>
           <div className="space-y-4">
             <div>
               <h1 className="text-xl font-semibold text-slate-900">Agent Skills</h1>
@@ -206,7 +208,10 @@ export default function AgentSkillsPage() {
                       <div className="flex items-start justify-between gap-2">
                         <button
                           type="button"
-                          onClick={() => setSelectedSkillId(skill.id)}
+                          onClick={() => {
+                            setSelectedSkillId(skill.id);
+                            setMobileDetailOpen(true);
+                          }}
                           className="min-w-0 flex-1 text-left"
                         >
                           <div className={`font-medium truncate ${
@@ -225,9 +230,18 @@ export default function AgentSkillsPage() {
           </div>
         </aside>
 
-        <section className="min-w-0 overflow-y-auto p-6">
+        <section className={`min-w-0 overflow-y-auto p-4 sm:p-6 sm:block ${mobileDetailOpen ? 'block flex-1' : 'hidden'}`}>
           {selectedSummary ? (
-            <div className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+              <button
+                onClick={() => setMobileDetailOpen(false)}
+                className="sm:hidden mb-5 flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-2 rounded-lg"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Back to Skills
+              </button>
               <div className="mb-6 border-b border-slate-100 pb-4">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-900">
@@ -263,13 +277,22 @@ export default function AgentSkillsPage() {
                     ),
                   }}
                 >
-                  {decodeBinaryString(selectedSummary.skill_text_context)}
+                  {selectedSummary.skill_text_content}
                 </ReactMarkdown>
               </article>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center text-slate-500">
+                <button
+                  onClick={() => setMobileDetailOpen(false)}
+                  className="sm:hidden mb-5 mx-auto flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-2 rounded-lg"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                  Back to Skills
+                </button>
                 <p className="font-medium text-slate-700">Select a skill</p>
                 <p className="mt-1 text-sm">Choose a markdown skill from the list to preview it.</p>
               </div>
