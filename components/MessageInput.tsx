@@ -27,7 +27,6 @@ export default function MessageInput({
   focusTrigger,
 }: MessageInputProps) {
   const [text, setText] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [clonedVoicesOpen, setClonedVoicesOpen] = useState(false);
   const [clonedVoices, setClonedVoices] = useState<ClonedVoice[]>([]);
@@ -101,16 +100,6 @@ export default function MessageInput({
     }
   };
 
-  const handleFileSelected = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !file.type.startsWith('audio/')) return;
-      onSendAudio(file);
-      e.target.value = '';
-    },
-    [onSendAudio]
-  );
-
   // When recording stops, send the audio
   const handleRecordComplete = useCallback(() => {
     if (audioBlob) {
@@ -166,13 +155,6 @@ export default function MessageInput({
 
   return (
     <div className="flex items-center gap-2 p-3 border-t border-slate-200 bg-white">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="audio/*"
-        className="hidden"
-        onChange={handleFileSelected}
-      />
       <div className="relative flex items-center" ref={dropdownRef}>
         <button
           type="button"
@@ -189,16 +171,7 @@ export default function MessageInput({
         </button>
         {clonedVoicesOpen && (
           <div className="absolute bottom-full left-0 mb-1 min-w-[180px] max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
-            <button
-              type="button"
-              onClick={() => {
-                setClonedVoicesOpen(false);
-                fileInputRef.current?.click();
-              }}
-              className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none border-b border-slate-100"
-            >
-              Upload audio…
-            </button>
+
             {clonedVoicesLoading ? (
               <div className="px-3 py-4 text-center text-slate-500 text-sm">Loading voices…</div>
             ) : clonedVoices.length === 0 ? (
@@ -210,7 +183,7 @@ export default function MessageInput({
                   type="button"
                   onClick={() => {
                     if (selectedChatId) {
-                      setClonedVoice(selectedChatId, v.id, displayName(v));
+                      setClonedVoice(selectedChatId, displayName(v));
                       setClonedVoicesOpen(false);
                     }
                   }}

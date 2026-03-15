@@ -35,7 +35,6 @@ function loadChats(): Chat[] {
       messages: migrateMessages(c.messages ?? []),
       referenceAudioDataUrl: undefined,
       referenceAudioBlob: undefined,
-      clonedVoiceId: c.clonedVoiceId,
       clonedVoiceName: c.clonedVoiceName,
     }));
   } catch {
@@ -49,7 +48,6 @@ function chatsForStorage(chats: Chat[]): unknown[] {
     ...c,
     referenceAudioDataUrl: undefined,
     referenceAudioBlob: undefined,
-    clonedVoiceId: c.clonedVoiceId,
     clonedVoiceName: c.clonedVoiceName,
     messages: c.messages.map((m) => ({ id: m.id, role: m.role, type: m.type, content: m.content, timestamp: m.timestamp })),
   }));
@@ -81,8 +79,8 @@ interface ChatContextValue {
   /** Create chat with reference audio, or add audio to an existing empty chat. */
   createChat: (referenceAudioBlob: Blob, filename?: string) => Promise<Chat>;
   addReferenceAudio: (chatId: string, blob: Blob, filename?: string) => Promise<void>;
-  /** Set the chat's reference to a cloned voice (from /users/{id}/cloned-voices). */
-  setClonedVoice: (chatId: string, voiceId: string | number, voiceName?: string) => void;
+  /** Set the selected cloned voice name to use on future chat API requests. */
+  setClonedVoice: (chatId: string, voiceName?: string) => void;
   addMessage: (
     chatId: string,
     message: {
@@ -174,15 +172,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const setClonedVoice = useCallback((chatId: string, voiceId: string | number, voiceName?: string) => {
+  const setClonedVoice = useCallback((chatId: string, voiceName?: string) => {
     setChats((prev) =>
       prev.map((c) =>
         c.id === chatId
           ? {
               ...c,
-              clonedVoiceId: voiceId,
               clonedVoiceName: voiceName ?? c.clonedVoiceName,
-              name: voiceName ? voiceName.slice(0, 30) : c.name,
               updatedAt: Date.now(),
             }
           : c

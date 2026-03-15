@@ -5,8 +5,7 @@ export interface Chat {
   /** Reference audio as base64 data URL. Empty when chat has no voice yet. */
   referenceAudioDataUrl?: string;
   referenceAudioBlob?: Blob;
-  /** Selected cloned voice from backend (from /users/{id}/cloned-voices). */
-  clonedVoiceId?: string | number;
+  /** Selected cloned voice name to send on chat API requests. */
   clonedVoiceName?: string;
   messages: Message[];
   createdAt: number;
