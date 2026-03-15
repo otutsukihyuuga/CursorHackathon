@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -31,7 +31,7 @@ async function uploadClonedVoice({
   return response.json();
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const searchParams = useSearchParams();
   const { user, signOut } = useAuth();
   const { loading } = useRequireAuth();
@@ -241,5 +241,19 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center bg-slate-50">
+          <p className="text-slate-500">Loading…</p>
+        </div>
+      }
+    >
+      <ProfileContent />
+    </Suspense>
   );
 }
