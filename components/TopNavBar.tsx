@@ -47,9 +47,13 @@ export default function TopNavBar() {
           </svg>
           <span className="text-sm font-medium">Agent Skills</span>
         </Link>
-        <button
-          type="button"
-          className={placeholderNavClass}
+        <Link
+          href="/mood-meter"
+          className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${
+            pathname === '/mood-meter'
+              ? 'bg-slate-100 text-slate-800'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
           aria-label="Mood Meter"
           title="Mood Meter"
         >
@@ -60,7 +64,7 @@ export default function TopNavBar() {
             <path d="M16 16v-5" />
           </svg>
           <span className="text-sm font-medium">Mood Meter</span>
-        </button>
+        </Link>
         <button
           type="button"
           className={placeholderNavClass}
