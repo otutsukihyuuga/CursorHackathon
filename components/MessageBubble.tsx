@@ -27,6 +27,16 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         <p className="text-sm whitespace-pre-wrap break-words">
           {message.content}
         </p>
+        {!isUser && message.audioDataUrl && (
+          <div className="mt-2">
+            <audio
+              src={message.audioDataUrl}
+              controls
+              className="w-full max-w-[240px] h-8"
+              preload="metadata"
+            />
+          </div>
+        )}
         <p
           className={`text-[10px] mt-1 ${
             isUser ? 'text-green-100' : 'text-slate-500'

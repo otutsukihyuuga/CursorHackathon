@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { useChat } from '@/context/ChatContext';
 import { transcribeAudio } from '@/lib/transcribe';
 import MessageBubble from './MessageBubble';
@@ -25,20 +26,30 @@ function isAudioFile(file: File) {
 }
 
 export default function ChatView() {
+  const { user, token } = useAuth();
   const { chats, selectedChatId, addMessage, addReferenceAudio, deleteChat, focusMessageInputTrigger } =
     useChat();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [transcribeError, setTranscribeError] = useState<string | null>(null);
   const chat = chats.find((c) => c.id === selectedChatId);
 
+  const chatOptions =
+    user?.id != null
+      ? {
+          userId: String(user.id),
+          clonedVoiceName: chat?.clonedVoiceName,
+          token: token ?? undefined,
+        }
+      : undefined;
+
   const handleSendText = async (text: string) => {
     if (!selectedChatId) return;
     setTranscribeError(null);
-    await addMessage(selectedChatId, {
-      role: 'user',
-      type: 'text',
-      content: text,
-    });
+    await addMessage(
+      selectedChatId,
+      { role: 'user', type: 'text', content: text },
+      chatOptions
+    );
   };
 
   const handleSendAudio = async (blob: Blob) => {
@@ -52,11 +63,11 @@ export default function ChatView() {
       setTranscribeError(err instanceof Error ? err.message : 'Transcription failed');
       transcript = 'Transcription failed';
     }
-    await addMessage(selectedChatId, {
-      role: 'user',
-      type: 'text',
-      content: transcript,
-    });
+    await addMessage(
+      selectedChatId,
+      { role: 'user', type: 'text', content: transcript },
+      chatOptions
+    );
   };
 
   if (!chat) {
@@ -84,10 +95,22 @@ export default function ChatView() {
           <div>
             <h1 className="font-semibold text-slate-900">{chat.name}</h1>
             <p className="text-xs text-slate-500">
-              {chat.referenceAudioDataUrl
-                ? `Reference voice · ${chat.messages.length} messages`
-                : `${chat.messages.length} messages · Add voice to enable voice features`}
+              {chat.clonedVoiceName
+                ? `Reference: ${chat.clonedVoiceName} · ${chat.messages.length} messages`
+                : chat.referenceAudioDataUrl
+                  ? `Reference voice · ${chat.messages.length} messages`
+                  : `${chat.messages.length} messages · Use + to pick a cloned voice`}
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard.writeText(chat.id);
+              }}
+              className="text-[10px] text-slate-400 font-mono mt-0.5 text-left hover:text-slate-600 hover:underline"
+              title="Copy conversation ID"
+            >
+              conv: {chat.id}
+            </button>
           </div>
         </div>
         <button

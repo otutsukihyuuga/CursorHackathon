@@ -5,9 +5,21 @@ export interface Chat {
   /** Reference audio as base64 data URL. Empty when chat has no voice yet. */
   referenceAudioDataUrl?: string;
   referenceAudioBlob?: Blob;
+  /** Selected cloned voice from backend (from /users/{id}/cloned-voices). */
+  clonedVoiceId?: string | number;
+  clonedVoiceName?: string;
   messages: Message[];
   createdAt: number;
   updatedAt: number;
+}
+
+/** Cloned voice item from GET /users/{user-id}/cloned-voices */
+export interface ClonedVoice {
+  id: string | number;
+  name?: string;
+  display_name?: string;
+  audio_url?: string;
+  [key: string]: unknown;
 }
 
 export type MessageRole = 'user' | 'assistant';
@@ -21,4 +33,6 @@ export interface Message {
   /** Text content (for voice messages, this is the transcript). */
   content: string;
   timestamp: number;
+  /** Assistant voice response as data URL (audio/wav). Not persisted. */
+  audioDataUrl?: string;
 }

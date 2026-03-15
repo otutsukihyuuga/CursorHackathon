@@ -35,6 +35,8 @@ function loadChats(): Chat[] {
       messages: migrateMessages(c.messages ?? []),
       referenceAudioDataUrl: undefined,
       referenceAudioBlob: undefined,
+      clonedVoiceId: c.clonedVoiceId,
+      clonedVoiceName: c.clonedVoiceName,
     }));
   } catch {
     return [];
@@ -47,6 +49,8 @@ function chatsForStorage(chats: Chat[]): unknown[] {
     ...c,
     referenceAudioDataUrl: undefined,
     referenceAudioBlob: undefined,
+    clonedVoiceId: c.clonedVoiceId,
+    clonedVoiceName: c.clonedVoiceName,
     messages: c.messages.map((m) => ({ id: m.id, role: m.role, type: m.type, content: m.content, timestamp: m.timestamp })),
   }));
 }
@@ -77,13 +81,16 @@ interface ChatContextValue {
   /** Create chat with reference audio, or add audio to an existing empty chat. */
   createChat: (referenceAudioBlob: Blob, filename?: string) => Promise<Chat>;
   addReferenceAudio: (chatId: string, blob: Blob, filename?: string) => Promise<void>;
+  /** Set the chat's reference to a cloned voice (from /users/{id}/cloned-voices). */
+  setClonedVoice: (chatId: string, voiceId: string | number, voiceName?: string) => void;
   addMessage: (
     chatId: string,
     message: {
       role: Message['role'];
       type: Message['type'];
       content: string;
-    }
+    },
+    options?: { userId: string; clonedVoiceName?: string; token?: string | null }
   ) => Promise<void>;
   deleteChat: (id: string) => void;
 }
@@ -167,6 +174,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const setClonedVoice = useCallback((chatId: string, voiceId: string | number, voiceName?: string) => {
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === chatId
+          ? {
+              ...c,
+              clonedVoiceId: voiceId,
+              clonedVoiceName: voiceName ?? c.clonedVoiceName,
+              name: voiceName ? voiceName.slice(0, 30) : c.name,
+              updatedAt: Date.now(),
+            }
+          : c
+      )
+    );
+  }, []);
+
   const createChat = useCallback(
     async (referenceAudioBlob: Blob, filename?: string): Promise<Chat> => {
       const existingEmpty = chats.find(isEmptyChat);
@@ -202,7 +225,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         role: Message['role'];
         type: Message['type'];
         content: string;
-      }
+      },
+      options?: { userId: string; clonedVoiceName?: string; token?: string | null }
     ) => {
       const message: Message = {
         id: generateId(),
@@ -224,8 +248,89 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         )
       );
 
-      // TODO: API call - send message (text or audio), get response
-      // await api.sendMessage(chatId, { type: msg.type, content });
+      if (!options?.userId) return;
+
+      try {
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+          'X-User-Id': options.userId,
+        };
+        if (options.token) headers['Authorization'] = `Bearer ${options.token}`;
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            conversation_id: chatId,
+            user_message: msg.content,
+            ...(options.clonedVoiceName != null && options.clonedVoiceName !== ''
+              ? { cloned_voice_name: options.clonedVoiceName }
+              : {}),
+          }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          agents_message?: string;
+          agents_audio_clip?: string;
+          conversation_id?: string;
+          error?: string;
+        };
+
+        if (!res.ok) {
+          const errMsg = typeof data?.error === 'string' ? data.error : 'Failed to get response';
+          const assistantMessage: Message = {
+            id: generateId(),
+            role: 'assistant',
+            type: 'text',
+            content: `Error: ${errMsg}`,
+            timestamp: Date.now(),
+          };
+          setChats((prev) =>
+            prev.map((c) =>
+              c.id === chatId
+                ? { ...c, messages: [...c.messages, assistantMessage], updatedAt: Date.now() }
+                : c
+            )
+          );
+          return;
+        }
+
+        const agentsMessage = data.agents_message ?? '';
+        const clip = data.agents_audio_clip;
+        const audioDataUrl =
+          typeof clip === 'string' && clip.length > 0
+            ? `data:audio/wav;base64,${clip}`
+            : undefined;
+
+        const assistantMessage: Message = {
+          id: generateId(),
+          role: 'assistant',
+          type: 'text',
+          content: agentsMessage || '(No response)',
+          timestamp: Date.now(),
+          ...(audioDataUrl && { audioDataUrl }),
+        };
+        setChats((prev) =>
+          prev.map((c) =>
+            c.id === chatId
+              ? { ...c, messages: [...c.messages, assistantMessage], updatedAt: Date.now() }
+              : c
+          )
+        );
+      } catch (err) {
+        const assistantMessage: Message = {
+          id: generateId(),
+          role: 'assistant',
+          type: 'text',
+          content: `Error: ${err instanceof Error ? err.message : 'Request failed'}`,
+          timestamp: Date.now(),
+        };
+        setChats((prev) =>
+          prev.map((c) =>
+            c.id === chatId
+              ? { ...c, messages: [...c.messages, assistantMessage], updatedAt: Date.now() }
+              : c
+          )
+        );
+      }
     },
     []
   );
@@ -245,6 +350,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       createEmptyChat,
       createChat,
       addReferenceAudio,
+      setClonedVoice,
       addMessage,
       deleteChat,
     }),
@@ -257,6 +363,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       createEmptyChat,
       createChat,
       addReferenceAudio,
+      setClonedVoice,
       addMessage,
       deleteChat,
     ]

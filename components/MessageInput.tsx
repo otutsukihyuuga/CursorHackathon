@@ -2,6 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { useAuth } from '@/context/AuthContext';
+import { useChat } from '@/context/ChatContext';
+import type { ClonedVoice } from '@/lib/types';
 
 interface MessageInputProps {
   onSendText: (text: string) => void;
@@ -26,6 +29,47 @@ export default function MessageInput({
   const [text, setText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [clonedVoicesOpen, setClonedVoicesOpen] = useState(false);
+  const [clonedVoices, setClonedVoices] = useState<ClonedVoice[]>([]);
+  const [clonedVoicesLoading, setClonedVoicesLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const { user, token } = useAuth();
+  const { selectedChatId, setClonedVoice } = useChat();
+
+  const userId = user?.id != null ? String(user.id) : null;
+
+  const fetchClonedVoices = useCallback(async () => {
+    if (!userId) return;
+    setClonedVoicesLoading(true);
+    try {
+      const headers: HeadersInit = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`/api/users/${encodeURIComponent(userId)}/cloned-voices`, { headers });
+      const data = await res.json().catch(() => []);
+      setClonedVoices(Array.isArray(data) ? data : []);
+    } catch {
+      setClonedVoices([]);
+    } finally {
+      setClonedVoicesLoading(false);
+    }
+  }, [userId, token]);
+
+  useEffect(() => {
+    if (clonedVoicesOpen && userId) fetchClonedVoices();
+  }, [clonedVoicesOpen, userId, fetchClonedVoices]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setClonedVoicesOpen(false);
+      }
+    }
+    if (clonedVoicesOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [clonedVoicesOpen]);
 
   useEffect(() => {
     if (focusTrigger != null && focusTrigger > 0) {
@@ -117,6 +161,9 @@ export default function MessageInput({
     );
   }
 
+  const displayName = (v: ClonedVoice) =>
+    v.name ?? v.display_name ?? (typeof v.id === 'number' ? `Voice ${v.id}` : String(v.id));
+
   return (
     <div className="flex items-center gap-2 p-3 border-t border-slate-200 bg-white">
       <input
@@ -126,18 +173,56 @@ export default function MessageInput({
         className="hidden"
         onChange={handleFileSelected}
       />
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        disabled={disabled}
-        className="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
-        aria-label="Attach audio"
-      >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="17 8 12 3 7 8" />
-          <line x1="12" y1="3" x2="12" y2="15" />
-        </svg>
-      </button>
+      <div className="relative flex items-center" ref={dropdownRef}>
+        <button
+          type="button"
+          onClick={() => setClonedVoicesOpen((o) => !o)}
+          disabled={disabled || !selectedChatId}
+          className="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50 flex items-center justify-center"
+          aria-label="Select reference voice"
+          aria-expanded={clonedVoicesOpen}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+        {clonedVoicesOpen && (
+          <div className="absolute bottom-full left-0 mb-1 min-w-[180px] max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+            <button
+              type="button"
+              onClick={() => {
+                setClonedVoicesOpen(false);
+                fileInputRef.current?.click();
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none border-b border-slate-100"
+            >
+              Upload audio…
+            </button>
+            {clonedVoicesLoading ? (
+              <div className="px-3 py-4 text-center text-slate-500 text-sm">Loading voices…</div>
+            ) : clonedVoices.length === 0 ? (
+              <div className="px-3 py-4 text-center text-slate-500 text-sm">No cloned voices</div>
+            ) : (
+              clonedVoices.map((v) => (
+                <button
+                  key={String(v.id)}
+                  type="button"
+                  onClick={() => {
+                    if (selectedChatId) {
+                      setClonedVoice(selectedChatId, v.id, displayName(v));
+                      setClonedVoicesOpen(false);
+                    }
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none"
+                >
+                  {displayName(v)}
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
       <textarea
         ref={textareaRef}
         value={text}
