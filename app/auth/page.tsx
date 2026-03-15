@@ -26,7 +26,7 @@ export default function AuthPage() {
       } else {
         await signUp(username, password);
       }
-      router.push('/');
+      router.push('/home');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -39,7 +39,7 @@ export default function AuthPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-100 px-4">
       <div className="w-full max-w-sm">
         <Link
-          href="/"
+          href="/home"
           className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-8"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

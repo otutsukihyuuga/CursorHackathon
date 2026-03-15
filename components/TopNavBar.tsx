@@ -48,9 +48,9 @@ export default function TopNavBar() {
             <span className="text-sm font-medium">Voice Library</span>
           </Link>
           <Link
-            href="/"
+            href="/chat"
             className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg ${
-              pathname === '/'
+              pathname === '/chat'
                 ? 'bg-slate-100 text-slate-800'
                 : 'text-slate-600 hover:bg-slate-100'
             }`}
