@@ -19,12 +19,12 @@ async function uploadClonedVoice({
   userId: number;
   wavFile: File;
   voiceName: string;
-  voiceDescription?: string;
+  voiceDescription: string;
 }) {
   const formData = new FormData();
   formData.append('reference_audio', wavFile);
   formData.append('voice_name', voiceName);
-  formData.append('voice_description', voiceDescription ?? '');
+  formData.append('voice_description', voiceDescription);
   const response = await fetch('/api/cloned-voices', {
     method: 'POST',
     headers: { 'X-User-Id': String(userId) },
@@ -99,7 +99,7 @@ function VoicesContent() {
   };
 
   const handleCloneVoice = async () => {
-    if (!selectedFile || !voiceName.trim() || !user?.id) return;
+    if (!selectedFile || !voiceName.trim() || !voiceDescription.trim() || !user?.id) return;
     setUploading(true);
     setUploadStatus(null);
     try {
@@ -268,13 +268,14 @@ function VoicesContent() {
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Description
+                  Description <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
+                  required
                   value={voiceDescription}
                   onChange={e => setVoiceDescription(e.target.value)}
-                  placeholder="Optional description for this voice"
+                  placeholder="Describe this voice and what it is best for"
                   className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
                 />
               </div>
@@ -388,7 +389,7 @@ function VoicesContent() {
               <div className="flex items-center gap-3 pt-3 border-t border-slate-200 mt-6">
                 <button
                   onClick={handleCloneVoice}
-                  disabled={uploading || !selectedFile || !voiceName.trim()}
+                  disabled={uploading || !selectedFile || !voiceName.trim() || !voiceDescription.trim()}
                   className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl transition-all shadow-sm"
                 >
                   {uploading ? 'Uploading & Processing...' : 'Upload & Clone Voice'}
