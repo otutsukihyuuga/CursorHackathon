@@ -2,22 +2,27 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 interface AgentSkillRecord {
-  filename: string;
-  displayName: string;
-  updatedAt: number;
-  contentBinary: string;
+  id: number;
+  user_id: number;
+  is_public: boolean;
+  name: string;
+  skill_text_context: string;
+  created_at: string;
 }
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '') ?? '';
+
 export default function AgentSkillsPage() {
+  const { user } = useAuth();
   const { loading } = useRequireAuth();
   const [skills, setSkills] = useState<AgentSkillRecord[]>([]);
-  const [selectedFilename, setSelectedFilename] = useState<string | null>(null);
+  const [selectedSkillId, setSelectedSkillId] = useState<number | null>(null);
   const [loadingList, setLoadingList] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -40,43 +45,51 @@ export default function AgentSkillsPage() {
   }, []);
 
   const selectedSummary = useMemo(
-    () => skills.find((skill) => skill.filename === selectedFilename) ?? null,
-    [skills, selectedFilename]
+    () => skills.find((skill) => skill.id === selectedSkillId) ?? null,
+    [skills, selectedSkillId]
   );
 
   const loadSkills = useCallback(async () => {
+    if (user?.id == null) return;
+
     setLoadingList(true);
     setError(null);
     try {
-      const res = await fetch('/skills/list');
-      const data = (await res.json()) as { skills?: AgentSkillRecord[]; error?: string };
+      const res = await fetch(`${BACKEND_URL}/users/${encodeURIComponent(String(user.id))}/skills`, {
+        headers: {
+          'X-User-Id': String(user.id),
+        },
+      });
+      const data = (await res.json()) as AgentSkillRecord[] | { error?: string };
       if (!res.ok) {
-        throw new Error(data.error ?? 'Failed to load skills');
+        throw new Error(
+          typeof data === 'object' && !Array.isArray(data) ? (data.error ?? 'Failed to load skills') : 'Failed to load skills'
+        );
       }
 
-      const nextSkills = data.skills ?? [];
+      const nextSkills = Array.isArray(data) ? data : [];
       setSkills(nextSkills);
-      setSelectedFilename((current) => {
-        if (current && nextSkills.some((skill) => skill.filename === current)) {
+      setSelectedSkillId((current) => {
+        if (current != null && nextSkills.some((skill) => skill.id === current)) {
           return current;
         }
-        return nextSkills[0]?.filename ?? null;
+        return nextSkills[0]?.id ?? null;
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load skills');
     } finally {
       setLoadingList(false);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && user?.id != null) {
       void loadSkills();
     }
-  }, [loading, loadSkills]);
+  }, [loading, loadSkills, user?.id]);
 
   async function handleUpload(file: File | null) {
-    if (!file) return;
+    if (!file || user?.id == null) return;
 
     setStatusMessage(null);
     if (!file.name.toLowerCase().endsWith('.md')) {
@@ -90,12 +103,16 @@ export default function AgentSkillsPage() {
     try {
       const contentBinary = await encodeBinaryString(file);
 
-      const res = await fetch('/skills/create', {
+      const res = await fetch(`${BACKEND_URL}/users/${encodeURIComponent(String(user.id))}/skills`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': String(user.id),
+        },
         body: JSON.stringify({
-          filename: file.name,
-          contentBinary,
+          name: file.name.replace(/\.md$/i, ''),
+          skill_text_context: contentBinary,
+          is_public: false,
         }),
       });
 
@@ -104,43 +121,18 @@ export default function AgentSkillsPage() {
         throw new Error(data.error ?? 'Failed to create skill');
       }
 
+      const createdSkill = (await res.json().catch(() => null)) as AgentSkillRecord | null;
+
       await loadSkills();
-      setSelectedFilename(file.name);
+      if (createdSkill?.id != null) {
+        setSelectedSkillId(createdSkill.id);
+      }
       setStatusMessage(`Uploaded ${file.name}`);
     } catch (err) {
       setStatusMessage(null);
       setError(err instanceof Error ? err.message : 'Failed to create skill');
     } finally {
       setSubmitting(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!selectedFilename) return;
-
-    setDeleting(true);
-    setError(null);
-    setStatusMessage(null);
-
-    try {
-      const res = await fetch('/skills/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: selectedFilename }),
-      });
-
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? 'Failed to delete skill');
-      }
-
-      const deletedFilename = selectedFilename;
-      await loadSkills();
-      setStatusMessage(`Deleted ${deletedFilename}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete skill');
-    } finally {
-      setDeleting(false);
     }
   }
 
@@ -204,9 +196,9 @@ export default function AgentSkillsPage() {
                 <div className="space-y-1">
                   {skills.map((skill) => (
                     <div
-                      key={skill.filename}
+                      key={skill.id}
                       className={`rounded-xl border px-3 py-2 transition-colors ${
-                        skill.filename === selectedFilename
+                        skill.id === selectedSkillId
                           ? 'border-indigo-200 bg-indigo-50'
                           : 'border-transparent bg-slate-50 hover:bg-slate-100'
                       }`}
@@ -214,26 +206,16 @@ export default function AgentSkillsPage() {
                       <div className="flex items-start justify-between gap-2">
                         <button
                           type="button"
-                          onClick={() => setSelectedFilename(skill.filename)}
+                          onClick={() => setSelectedSkillId(skill.id)}
                           className="min-w-0 flex-1 text-left"
                         >
                           <div className={`font-medium truncate ${
-                            skill.filename === selectedFilename ? 'text-indigo-900' : 'text-slate-700'
+                            skill.id === selectedSkillId ? 'text-indigo-900' : 'text-slate-700'
                           }`}>
-                            {skill.displayName}
+                            {skill.name}
                           </div>
-                          <div className="text-xs text-slate-500 truncate">{skill.filename}</div>
+                          <div className="text-xs text-slate-500 truncate">{skill.name}.md</div>
                         </button>
-                        {skill.filename === selectedFilename && (
-                          <button
-                            type="button"
-                            onClick={() => void handleDelete()}
-                            disabled={deleting}
-                            className="shrink-0 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-                          >
-                            {deleting ? 'Deleting…' : 'Delete'}
-                          </button>
-                        )}
                       </div>
                     </div>
                   ))}
@@ -249,10 +231,13 @@ export default function AgentSkillsPage() {
               <div className="mb-6 border-b border-slate-100 pb-4">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-900">
-                    {selectedSummary.displayName}
+                    {selectedSummary.name}
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    {selectedSummary.filename}
+                    {selectedSummary.name}.md
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Created {new Date(selectedSummary.created_at).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -278,7 +263,7 @@ export default function AgentSkillsPage() {
                     ),
                   }}
                 >
-                  {decodeBinaryString(selectedSummary.contentBinary)}
+                  {decodeBinaryString(selectedSummary.skill_text_context)}
                 </ReactMarkdown>
               </article>
             </div>
