@@ -44,6 +44,7 @@ export default function AgentSkillsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
 
   const selectedSummary = useMemo(
     () => skills.find((skill) => skill.id === selectedSkillId) ?? null,
@@ -147,8 +148,8 @@ export default function AgentSkillsPage() {
 
   return (
     <div className="flex-1 min-h-0 bg-slate-50 overflow-hidden">
-      <div className="h-full grid grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="border-r border-slate-200 bg-white p-4 overflow-y-auto">
+      <div className="h-full flex flex-col sm:grid sm:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className={`border-r border-slate-200 bg-white p-4 overflow-y-auto sm:block ${mobileDetailOpen ? 'hidden' : 'block flex-1'}`}>
           <div className="space-y-4">
             <div>
               <h1 className="text-xl font-semibold text-slate-900">Agent Skills</h1>
@@ -207,7 +208,10 @@ export default function AgentSkillsPage() {
                       <div className="flex items-start justify-between gap-2">
                         <button
                           type="button"
-                          onClick={() => setSelectedSkillId(skill.id)}
+                          onClick={() => {
+                            setSelectedSkillId(skill.id);
+                            setMobileDetailOpen(true);
+                          }}
                           className="min-w-0 flex-1 text-left"
                         >
                           <div className={`font-medium truncate ${
@@ -226,9 +230,18 @@ export default function AgentSkillsPage() {
           </div>
         </aside>
 
-        <section className="min-w-0 overflow-y-auto p-6">
+        <section className={`min-w-0 overflow-y-auto p-4 sm:p-6 sm:block ${mobileDetailOpen ? 'block flex-1' : 'hidden'}`}>
           {selectedSummary ? (
-            <div className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+              <button
+                onClick={() => setMobileDetailOpen(false)}
+                className="sm:hidden mb-5 flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-2 rounded-lg"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Back to Skills
+              </button>
               <div className="mb-6 border-b border-slate-100 pb-4">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-900">
@@ -271,6 +284,15 @@ export default function AgentSkillsPage() {
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center text-slate-500">
+                <button
+                  onClick={() => setMobileDetailOpen(false)}
+                  className="sm:hidden mb-5 mx-auto flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-2 rounded-lg"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                  Back to Skills
+                </button>
                 <p className="font-medium text-slate-700">Select a skill</p>
                 <p className="mt-1 text-sm">Choose a markdown skill from the list to preview it.</p>
               </div>
