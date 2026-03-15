@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLayout } from './AppShell';
+import { useAuth } from '@/context/AuthContext';
 
 export default function TopNavBar() {
   const pathname = usePathname();
   const layout = useLayout();
+  const { user, loading, signOut } = useAuth();
   const isHome = pathname === '/';
 
   return (
@@ -51,27 +53,52 @@ export default function TopNavBar() {
         )}
         <span className="font-semibold text-slate-800">EchoVoice</span>
       </div>
-      <Link
-        href="/profile"
-        className={`p-2 rounded-lg ${
-          pathname === '/profile'
-            ? 'bg-slate-100 text-slate-800'
-            : 'text-slate-600 hover:bg-slate-100'
-        }`}
-        aria-label="Profile"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="12" cy="8" r="4" />
-          <path d="M20 21a8 8 0 1 0-16 0" />
-        </svg>
-      </Link>
+      {!loading && (
+        user ? (
+          <>
+            <Link
+              href="/profile"
+              className={`p-2 rounded-lg ${
+                pathname === '/profile'
+                  ? 'bg-slate-100 text-slate-800'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+              aria-label="Profile"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M20 21a8 8 0 1 0-16 0" />
+              </svg>
+            </Link>
+            <button
+              onClick={signOut}
+              className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+              aria-label="Sign out"
+            >
+              Sign Out
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/auth"
+            className={`p-2 rounded-lg ${
+              pathname === '/auth'
+                ? 'bg-slate-100 text-slate-800'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+            aria-label="Sign in"
+          >
+            Sign In
+          </Link>
+        )
+      )}
     </nav>
   );
 }
