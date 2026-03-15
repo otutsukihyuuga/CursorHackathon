@@ -65,9 +65,13 @@ export default function TopNavBar() {
           </svg>
           <span className="text-sm font-medium">Mood Meter</span>
         </Link>
-        <button
-          type="button"
-          className={placeholderNavClass}
+        <Link
+          href="/leaderboard"
+          className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${
+            pathname === '/leaderboard'
+              ? 'bg-slate-100 text-slate-800'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
           aria-label="Leaderboard"
           title="Leaderboard"
         >
@@ -79,7 +83,7 @@ export default function TopNavBar() {
             <path d="M7 5H5a2 2 0 0 0 0 4h2" />
           </svg>
           <span className="text-sm font-medium">Leaderboard</span>
-        </button>
+        </Link>
       </div>
       {!loading && (
         user ? (
