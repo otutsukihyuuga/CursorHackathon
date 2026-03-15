@@ -30,7 +30,7 @@ export default function LeaderboardPage() {
             Leaderboard
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Channel your emotions into positive work. The more you contribute, the higher you climb.
+            Channel your energy and emotions into positive, productive work to earn more badges and rise to the apex of the leaderboard.
           </p>
         </div>
 

@@ -58,7 +58,7 @@ export default function MoodMeterPage() {
         {/* ── Header ──────────────────────────────────────── */}
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-            Mood Meter
+            Mood Meter; You Have The Permission to Feel!
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             Your emotional landscape this week — each box is one hour of the day.
