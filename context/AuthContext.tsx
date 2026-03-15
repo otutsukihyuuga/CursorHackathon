@@ -58,8 +58,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await authApi.login({ username, password });
     // Backend returns UserRead: { id, username } (no token in OpenAPI)
     const t = (res.token ?? (res as Record<string, unknown>).accessToken) as string | undefined;
-    const u = (res.user ?? res) as AuthUser;
-    if (!u.username) (u as Record<string, unknown>).username = username;
+    const raw = (res as Record<string, unknown>).user ?? res;
+    const u: AuthUser = typeof raw === 'object' && raw && 'username' in raw
+      ? { id: (raw as AuthUser).id, username: (raw as AuthUser).username }
+      : { username };
     if (t) {
       setToken(t);
       setUser(u);
@@ -74,8 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = useCallback(async (username: string, password: string) => {
     const res = await authApi.signUp({ username, password });
     const t = (res.token ?? (res as Record<string, unknown>).accessToken) as string | undefined;
-    const u = (res.user ?? res) as AuthUser;
-    if (!u.username) (u as Record<string, unknown>).username = username;
+    const raw = (res as Record<string, unknown>).user ?? res;
+    const u: AuthUser = typeof raw === 'object' && raw && 'username' in raw
+      ? { id: (raw as AuthUser).id, username: (raw as AuthUser).username }
+      : { username };
     if (t) {
       setToken(t);
       setUser(u);
