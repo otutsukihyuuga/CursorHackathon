@@ -24,8 +24,10 @@ export default function ChatSidebar({
 
   return (
     <aside
-      className={`border-r border-slate-200 bg-white flex flex-col min-h-0 self-stretch transition-[width] duration-200 flex-shrink-0 overflow-hidden ${
-        collapsed ? 'w-16' : 'w-72'
+      className={`bg-white flex flex-col min-h-0 self-stretch transition-all duration-300 flex-shrink-0 overflow-hidden absolute sm:relative z-20 h-full border-r ${
+        collapsed 
+          ? 'w-0 sm:w-16 -translate-x-full sm:translate-x-0 border-r-transparent sm:border-slate-200 opacity-0 sm:opacity-100' 
+          : 'w-full sm:w-72 translate-x-0 border-slate-200 opacity-100'
       }`}
     >
       {collapsed ? (
@@ -102,7 +104,12 @@ export default function ChatSidebar({
                 {filteredChats.map((chat) => (
                   <li key={chat.id}>
                     <button
-                      onClick={() => selectChat(chat.id)}
+                      onClick={() => {
+                        selectChat(chat.id);
+                        if (window.innerWidth < 640 && !collapsed) {
+                          onExpand?.();
+                        }
+                      }}
                       className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 transition-colors ${
                         selectedChatId === chat.id
                           ? 'bg-green-50 text-green-800'

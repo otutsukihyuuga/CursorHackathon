@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useChat } from '@/context/ChatContext';
+import { useLayout } from '@/components/AppShell';
 import { transcribeAudio } from '@/lib/transcribe';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 
 export default function ChatView() {
   const router = useRouter();
+  const layout = useLayout();
   const { user, token } = useAuth();
   const { chats, selectedChatId, addMessage, deleteChat, focusMessageInputTrigger } =
     useChat();
@@ -70,9 +72,23 @@ export default function ChatView() {
   return (
     <div className="flex-1 flex flex-col min-h-0 min-w-0 bg-slate-50 overflow-hidden">
       {/* Chat header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <span className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-lg">
+      <header className="flex items-center justify-between px-3 sm:px-4 py-3 bg-white border-b border-slate-200 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 pr-2">
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => layout?.toggleSidebar()}
+            id="mobile-sidebar-toggle"
+            className="sm:hidden p-1.5 -ml-1.5 rounded-lg text-slate-500 hover:bg-slate-100 flex-shrink-0"
+            aria-label="Toggle sidebar"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          
+          <span className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-lg flex-shrink-0">
             🎙
           </span>
           <div>

@@ -25,6 +25,15 @@ export default function AppShell({
     setSidebarOpen((prev) => !prev);
   }, []);
 
+  import('react').then(({ useEffect }) => {
+    useEffect(() => {
+      // Auto-collapse sidebar on mobile
+      if (window.innerWidth < 640) {
+        setSidebarOpen(false);
+      }
+    }, []);
+  });
+
   return (
     <LayoutContext.Provider value={{ sidebarOpen, toggleSidebar }}>
       <div className="h-screen flex flex-col">
