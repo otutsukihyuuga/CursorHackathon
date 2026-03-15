@@ -43,9 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_TOKEN) : null;
       const storedUser = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_USER) : null;
-      if (storedToken && storedUser) {
-        setToken(storedToken);
+      if (storedUser) {
         setUser(JSON.parse(storedUser) as AuthUser);
+        if (storedToken) setToken(storedToken);
       }
     } catch {
       // ignore parse errors

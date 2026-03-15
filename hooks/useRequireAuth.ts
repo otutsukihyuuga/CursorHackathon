@@ -10,6 +10,7 @@ export function useRequireAuth() {
   const router = useRouter();
 
   useEffect(() => {
+    // Wait for AuthContext to finish hydrating from localStorage before redirecting
     if (loading) return;
     if (!user) {
       router.replace('/auth');
