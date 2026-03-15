@@ -18,6 +18,8 @@ export interface ClonedVoice {
   name?: string;
   voice_name?: string;
   display_name?: string;
+  description?: string;
+  voice_description?: string;
   audio_url?: string;
   [key: string]: unknown;
 }

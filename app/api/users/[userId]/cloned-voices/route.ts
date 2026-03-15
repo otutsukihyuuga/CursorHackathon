@@ -38,7 +38,19 @@ export async function GET(
     }
 
     const list = Array.isArray(data) ? data : (data?.items ?? data?.cloned_voices ?? []);
-    return NextResponse.json(Array.isArray(list) ? list : []);
+    const normalizedList = Array.isArray(list)
+      ? list.map((item) => {
+          if (!item || typeof item !== 'object') return item;
+
+          return {
+            ...item,
+            name: item.name ?? item.voice_name ?? item.display_name,
+            description: item.description ?? item.voice_description,
+          };
+        })
+      : [];
+
+    return NextResponse.json(normalizedList);
   } catch (err) {
     console.error('Cloned voices proxy error:', err);
     return NextResponse.json(

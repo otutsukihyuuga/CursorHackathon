@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'EchoVoice — Chat with voice',
+  title: 'Elevate — Chat with voice',
   description:
     'Upload a reference audio to create a chat. Send text or voice messages.',
 };
