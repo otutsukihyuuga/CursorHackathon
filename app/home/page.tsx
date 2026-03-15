@@ -21,12 +21,12 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto relative bg-slate-50 overflow-hidden">
+    <div className="relative min-h-full overflow-x-hidden bg-slate-50">
       
       {/* ── Background Glow Effects ─────────────────────────────────── */}
-      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-indigo-100/50 to-transparent pointer-events-none"></div>
-      <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-blue-400/20 blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-purple-400/20 blur-[120px] pointer-events-none"></div>
+      <div className="pointer-events-none absolute left-0 top-0 h-[320px] w-full bg-gradient-to-b from-indigo-100/50 to-transparent sm:h-[500px]"></div>
+      <div className="pointer-events-none absolute right-[-18%] top-[20%] hidden h-[320px] w-[320px] rounded-full bg-blue-400/15 blur-3xl sm:block sm:h-[500px] sm:w-[500px] sm:blur-[100px]"></div>
+      <div className="pointer-events-none absolute bottom-[-10%] left-[-15%] hidden h-[360px] w-[360px] rounded-full bg-purple-400/15 blur-3xl sm:block sm:h-[600px] sm:w-[600px] sm:blur-[120px]"></div>
 
       <div className="max-w-5xl mx-auto space-y-16 px-4 py-12 sm:px-8 relative z-10">
         
@@ -66,7 +66,7 @@ export default function HomePage() {
 
               {/* Right side (Text) */}
               <div className="w-full sm:w-[45%] pl-40 sm:pl-12 py-2">
-                <div className="bg-white/60 backdrop-blur-xl p-8 rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 group-hover:-translate-y-2 group-hover:shadow-xl transition-all duration-300">
+                <div className="rounded-3xl border border-white/50 bg-white/85 p-8 shadow-lg shadow-slate-200/50 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl sm:backdrop-blur-xl">
                   <h3 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">The Struggle</h3>
                   <p className="text-slate-600 leading-relaxed text-lg">As a student, you feel overwhelmed and inundated.</p>
                 </div>
@@ -76,7 +76,7 @@ export default function HomePage() {
             {/* Step 2 */}
             <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group min-h-[5rem]">
               <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-40 sm:pl-12 py-2">
-                <div className="bg-white/60 backdrop-blur-xl p-8 rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 group-hover:-translate-y-2 group-hover:shadow-xl transition-all duration-300">
+                <div className="rounded-3xl border border-white/50 bg-white/85 p-8 shadow-lg shadow-slate-200/50 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl sm:backdrop-blur-xl">
                   <p className="text-slate-700 font-semibold leading-relaxed text-lg">Choose a voice of your mentor or clone the voice of your loved ones.</p>
                 </div>
               </div>
@@ -95,7 +95,7 @@ export default function HomePage() {
             {/* Step 3 */}
             <div className="relative flex flex-col sm:flex-row items-center sm:justify-between w-full group min-h-[5rem]">
               <div className="w-full sm:w-[45%] flex sm:justify-end mb-4 sm:mb-0 pl-40 sm:pl-0 sm:pr-12 py-2">
-                <div className="bg-white/60 backdrop-blur-xl p-8 rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 w-full text-left sm:text-right group-hover:-translate-y-2 group-hover:shadow-xl transition-all duration-300">
+                <div className="w-full rounded-3xl border border-white/50 bg-white/85 p-8 text-left shadow-lg shadow-slate-200/50 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl sm:text-right sm:backdrop-blur-xl">
                   <p className="text-slate-700 font-semibold leading-relaxed text-lg">Chat with your best, personalized AI assistant.</p>
                 </div>
               </div>
@@ -114,7 +114,7 @@ export default function HomePage() {
             {/* Step 4 */}
             <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group min-h-[5rem]">
               <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-40 sm:pl-12 py-2">
-                <div className="bg-white/60 backdrop-blur-xl p-8 rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 group-hover:-translate-y-2 group-hover:shadow-xl transition-all duration-300">
+                <div className="rounded-3xl border border-white/50 bg-white/85 p-8 shadow-lg shadow-slate-200/50 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl sm:backdrop-blur-xl">
                   <p className="text-slate-700 font-semibold leading-relaxed text-lg">Create agent skills, and share them with other students.</p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function HomePage() {
             {/* Step 5 */}
             <div className="relative flex flex-col sm:flex-row items-center sm:justify-between w-full group min-h-[5rem]">
               <div className="w-full sm:w-[45%] flex sm:justify-end mb-4 sm:mb-0 pl-40 sm:pl-0 sm:pr-12 py-2">
-                <div className="bg-white/60 backdrop-blur-xl p-8 rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 w-full text-left sm:text-right group-hover:-translate-y-2 group-hover:shadow-xl transition-all duration-300">
+                <div className="w-full rounded-3xl border border-white/50 bg-white/85 p-8 text-left shadow-lg shadow-slate-200/50 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl sm:text-right sm:backdrop-blur-xl">
                   <p className="text-slate-700 font-semibold leading-relaxed text-lg">Track and analyze your mood using the Mood Meter.</p>
                 </div>
               </div>
@@ -153,7 +153,7 @@ export default function HomePage() {
             <div className="relative flex flex-col sm:flex-row-reverse items-center sm:justify-between w-full group min-h-[5rem]">
               <div className="w-full sm:w-[45%] flex sm:justify-start mb-4 sm:mb-0 pl-40 sm:pl-12 py-2">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-[2px] rounded-3xl shadow-xl shadow-indigo-500/30 group-hover:scale-[1.02] transition-all duration-300">
-                  <div className="bg-white/95 backdrop-blur-xl p-8 rounded-[22px] h-full">
+                  <div className="h-full rounded-[22px] bg-white/95 p-8 sm:backdrop-blur-xl">
                     <p className="text-indigo-900 font-black leading-relaxed text-xl tracking-tight">Have a healthy competition with other peers.</p>
                   </div>
                 </div>
