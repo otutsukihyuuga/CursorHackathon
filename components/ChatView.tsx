@@ -13,7 +13,7 @@ export default function ChatView() {
   const router = useRouter();
   const layout = useLayout();
   const { user, token } = useAuth();
-  const { chats, selectedChatId, addMessage, deleteChat, focusMessageInputTrigger } =
+  const { chats, selectedChatId, addMessage, deleteChat, focusMessageInputTrigger, createEmptyChat } =
     useChat();
   const [transcribeError, setTranscribeError] = useState<string | null>(null);
   const chat = chats.find((c) => c.id === selectedChatId);
@@ -57,13 +57,40 @@ export default function ChatView() {
 
   if (!chat) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 min-w-0 items-center justify-center bg-slate-50 text-slate-500 overflow-hidden">
-        <div className="text-center max-w-sm">
-          <span className="text-5xl block mb-4">💬</span>
-          <p className="font-medium text-slate-700">Select a chat or create one</p>
-          <p className="text-sm mt-1">
-            Click &quot;New chat&quot; in the sidebar to start
-          </p>
+      <div className="flex-1 flex flex-col min-h-0 min-w-0 bg-slate-50 relative overflow-hidden">
+        {/* Mobile hamburger for empty state */}
+        <div className="absolute top-3 left-3 sm:hidden z-10">
+          <button
+            onClick={() => layout?.toggleSidebar()}
+            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-200 bg-white shadow-sm border border-slate-200"
+            aria-label="Toggle sidebar"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center max-w-sm w-full">
+            <span className="text-5xl block mb-4">💬</span>
+            <p className="font-medium text-slate-700">Select a chat or create one</p>
+            <p className="text-sm mt-1 text-slate-500 hidden sm:block">
+              Click &quot;New chat&quot; in the sidebar to start
+            </p>
+            
+            <button
+              onClick={() => createEmptyChat()}
+              className="mt-6 mx-auto w-full sm:hidden px-4 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-medium flex items-center justify-center gap-2 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              New chat
+            </button>
+          </div>
         </div>
       </div>
     );
