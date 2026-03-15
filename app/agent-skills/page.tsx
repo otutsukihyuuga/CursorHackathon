@@ -5,16 +5,35 @@ import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 
-interface AgentSkillRecord {
+interface AgentSkillApiRecord {
   id: number;
-  user_id: number;
+  user_id: number | null;
   is_public: boolean;
   name: string;
-  skill_text_context: string;
+  skill_text_content?: string;
+  skill_text_context?: string;
   created_at: string;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '') ?? '';
+interface AgentSkillRecord {
+  id: number;
+  user_id: number | null;
+  is_public: boolean;
+  name: string;
+  skill_text_content: string;
+  created_at: string;
+}
+
+function normalizeSkillRecord(skill: AgentSkillApiRecord): AgentSkillRecord {
+  return {
+    id: skill.id,
+    user_id: skill.user_id,
+    is_public: skill.is_public,
+    name: skill.name,
+    skill_text_content: skill.skill_text_content ?? skill.skill_text_context ?? '',
+    created_at: skill.created_at,
+  };
+}
 
 export default function AgentSkillsPage() {
   const { user } = useAuth();
@@ -25,24 +44,6 @@ export default function AgentSkillsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-
-  const decodeBinaryString = useCallback((binary: string) => {
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  }, []);
-
-  const encodeBinaryString = useCallback(async (file: File) => {
-    const buffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    const chunkSize = 0x8000;
-
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-
-    return binary;
-  }, []);
 
   const selectedSummary = useMemo(
     () => skills.find((skill) => skill.id === selectedSkillId) ?? null,
@@ -55,19 +56,19 @@ export default function AgentSkillsPage() {
     setLoadingList(true);
     setError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/users/${encodeURIComponent(String(user.id))}/skills`, {
+      const res = await fetch(`/users/${encodeURIComponent(String(user.id))}/skills`, {
         headers: {
           'X-User-Id': String(user.id),
         },
       });
-      const data = (await res.json()) as AgentSkillRecord[] | { error?: string };
+      const data = (await res.json()) as AgentSkillApiRecord[] | { error?: string };
       if (!res.ok) {
         throw new Error(
           typeof data === 'object' && !Array.isArray(data) ? (data.error ?? 'Failed to load skills') : 'Failed to load skills'
         );
       }
 
-      const nextSkills = Array.isArray(data) ? data : [];
+      const nextSkills = Array.isArray(data) ? data.map(normalizeSkillRecord) : [];
       setSkills(nextSkills);
       setSelectedSkillId((current) => {
         if (current != null && nextSkills.some((skill) => skill.id === current)) {
@@ -101,9 +102,9 @@ export default function AgentSkillsPage() {
     setError(null);
 
     try {
-      const contentBinary = await encodeBinaryString(file);
+      const skillText = await file.text();
 
-      const res = await fetch(`${BACKEND_URL}/users/${encodeURIComponent(String(user.id))}/skills`, {
+      const res = await fetch(`/users/${encodeURIComponent(String(user.id))}/skills`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ export default function AgentSkillsPage() {
         },
         body: JSON.stringify({
           name: file.name.replace(/\.md$/i, ''),
-          skill_text_context: contentBinary,
+          skill_text_context: skillText,
           is_public: false,
         }),
       });
@@ -121,7 +122,7 @@ export default function AgentSkillsPage() {
         throw new Error(data.error ?? 'Failed to create skill');
       }
 
-      const createdSkill = (await res.json().catch(() => null)) as AgentSkillRecord | null;
+      const createdSkill = (await res.json().catch(() => null)) as AgentSkillApiRecord | null;
 
       await loadSkills();
       if (createdSkill?.id != null) {
@@ -263,7 +264,7 @@ export default function AgentSkillsPage() {
                     ),
                   }}
                 >
-                  {decodeBinaryString(selectedSummary.skill_text_context)}
+                  {selectedSummary.skill_text_content}
                 </ReactMarkdown>
               </article>
             </div>
