@@ -160,7 +160,7 @@ export default function ChatView() {
             {!chat.referenceAudioDataUrl && (
               <div className="mt-4">
                 <button
-                  onClick={() => router.push('/profile?cloneVoice=1')}
+                  onClick={() => router.push('/voices?cloneVoice=1')}
                   className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium"
                 >
                   Add reference voice
