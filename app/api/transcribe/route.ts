@@ -21,10 +21,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Sarvam rejects audio/webm;codecs=opus - use audio/webm
+    const normalizedType = file.type.startsWith('audio/webm') ? 'audio/webm' : file.type;
+    const buffer = await file.arrayBuffer();
+    const normalizedFile = new File([buffer], file.name || 'audio.webm', {
+      type: normalizedType,
+    });
+
     const sarvamFormData = new FormData();
     sarvamFormData.append('model', 'saaras:v3');
     sarvamFormData.append('mode', 'translate');
-    sarvamFormData.append('file', file, file.name || 'audio.webm');
+    sarvamFormData.append('file', normalizedFile, normalizedFile.name);
 
     const response = await fetch(SARVAM_API_URL, {
       method: 'POST',
