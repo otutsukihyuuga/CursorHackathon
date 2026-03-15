@@ -12,21 +12,49 @@ import type { Chat, Message } from '@/lib/types';
 
 const STORAGE_KEY = 'echovoice-chats';
 
+/** Strip audio from messages - keep only transcript as text. Reduces localStorage size. */
+function migrateMessages(messages: Array<Message & { transcript?: string }>): Message[] {
+  return messages.map((m) => {
+    if (m.type === 'audio') {
+      const { transcript, ...rest } = m;
+      return { ...rest, type: 'text' as const, content: transcript ?? '[Audio message]' };
+    }
+    const { transcript: _t, ...rest } = m;
+    return rest as Message;
+  });
+}
+
 function loadChats(): Chat[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const chats = JSON.parse(raw);
+    return chats.map((c: Chat) => ({
+      ...c,
+      messages: migrateMessages(c.messages ?? []),
+      referenceAudioDataUrl: undefined,
+      referenceAudioBlob: undefined,
+    }));
   } catch {
     return [];
   }
 }
 
+/** Chats to persist - no audio blobs or base64. */
+function chatsForStorage(chats: Chat[]): unknown[] {
+  return chats.map((c) => ({
+    ...c,
+    referenceAudioDataUrl: undefined,
+    referenceAudioBlob: undefined,
+    messages: c.messages.map((m) => ({ id: m.id, role: m.role, type: m.type, content: m.content, timestamp: m.timestamp })),
+  }));
+}
+
 function saveChats(chats: Chat[]) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(chatsForStorage(chats)));
   } catch {
     // ignore
   }
@@ -40,6 +68,10 @@ interface ChatContextValue {
   chats: Chat[];
   selectedChatId: string | null;
   selectChat: (id: string | null) => void;
+  /** Incremented when the message input should be focused (e.g. after New Chat). */
+  focusMessageInputTrigger: number;
+  /** Request focus on the message input (e.g. after clicking New Chat). */
+  requestFocusMessageInput: () => void;
   /** Create a new empty chat (ChatGPT-style). Reuses existing empty chat to prevent spam. */
   createEmptyChat: () => Chat;
   /** Create chat with reference audio, or add audio to an existing empty chat. */
@@ -50,7 +82,7 @@ interface ChatContextValue {
     message: {
       role: Message['role'];
       type: Message['type'];
-      content: string | Blob;
+      content: string;
     }
   ) => Promise<void>;
   deleteChat: (id: string) => void;
@@ -74,6 +106,11 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [focusMessageInputTrigger, setFocusMessageInputTrigger] = useState(0);
+
+  const requestFocusMessageInput = useCallback(() => {
+    setFocusMessageInputTrigger((n) => n + 1);
+  }, []);
 
   useEffect(() => {
     setChats(loadChats());
@@ -91,6 +128,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const existingEmpty = chats.find(isEmptyChat);
     if (existingEmpty) {
       setSelectedChatId(existingEmpty.id);
+      setFocusMessageInputTrigger((n) => n + 1);
       return existingEmpty;
     }
     const chat: Chat = {
@@ -102,6 +140,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     };
     setChats((prev) => [chat, ...prev]);
     setSelectedChatId(chat.id);
+    setFocusMessageInputTrigger((n) => n + 1);
     return chat;
   }, [chats]);
 
@@ -159,18 +198,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const addMessage = useCallback(
     async (
       chatId: string,
-      msg: { role: Message['role']; type: Message['type']; content: string | Blob }
+      msg: {
+        role: Message['role'];
+        type: Message['type'];
+        content: string;
+      }
     ) => {
-      const content =
-        typeof msg.content === 'string'
-          ? msg.content
-          : await blobToDataUrl(msg.content as Blob);
-
       const message: Message = {
         id: generateId(),
         role: msg.role,
         type: msg.type,
-        content,
+        content: msg.content,
         timestamp: Date.now(),
       };
 
@@ -202,6 +240,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       chats,
       selectedChatId,
       selectChat,
+      focusMessageInputTrigger,
+      requestFocusMessageInput,
       createEmptyChat,
       createChat,
       addReferenceAudio,
@@ -212,6 +252,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       chats,
       selectedChatId,
       selectChat,
+      focusMessageInputTrigger,
+      requestFocusMessageInput,
       createEmptyChat,
       createChat,
       addReferenceAudio,

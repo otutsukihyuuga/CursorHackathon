@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useChat } from '@/context/ChatContext';
+import { transcribeAudio } from '@/lib/transcribe';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 
@@ -24,13 +25,15 @@ function isAudioFile(file: File) {
 }
 
 export default function ChatView() {
-  const { chats, selectedChatId, addMessage, addReferenceAudio, deleteChat } =
+  const { chats, selectedChatId, addMessage, addReferenceAudio, deleteChat, focusMessageInputTrigger } =
     useChat();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [transcribeError, setTranscribeError] = useState<string | null>(null);
   const chat = chats.find((c) => c.id === selectedChatId);
 
   const handleSendText = async (text: string) => {
     if (!selectedChatId) return;
+    setTranscribeError(null);
     await addMessage(selectedChatId, {
       role: 'user',
       type: 'text',
@@ -40,10 +43,19 @@ export default function ChatView() {
 
   const handleSendAudio = async (blob: Blob) => {
     if (!selectedChatId) return;
+    setTranscribeError(null);
+    let transcript: string;
+    try {
+      const result = await transcribeAudio(blob);
+      transcript = result.transcript.trim() || 'Transcription empty';
+    } catch (err) {
+      setTranscribeError(err instanceof Error ? err.message : 'Transcription failed');
+      transcript = 'Transcription failed';
+    }
     await addMessage(selectedChatId, {
       role: 'user',
-      type: 'audio',
-      content: blob,
+      type: 'text',
+      content: transcript,
     });
   };
 
@@ -127,9 +139,15 @@ export default function ChatView() {
 
       {/* Input */}
       <div className="flex-shrink-0">
+        {transcribeError && (
+          <p className="px-4 py-2 text-sm text-red-600 bg-red-50 border-t border-red-100">
+            {transcribeError}
+          </p>
+        )}
         <MessageInput
         onSendText={handleSendText}
         onSendAudio={handleSendAudio}
+        focusTrigger={focusMessageInputTrigger}
         />
       </div>
     </div>

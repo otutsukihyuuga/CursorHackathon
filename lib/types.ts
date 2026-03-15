@@ -18,7 +18,7 @@ export interface Message {
   id: string;
   role: MessageRole;
   type: MessageType;
-  /** For text: the text content. For audio: base64 data URL or object URL (ephemeral). */
+  /** Text content (for voice messages, this is the transcript). */
   content: string;
   timestamp: number;
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import type { Message } from '@/lib/types';
-import InlineAudioPlayer from './InlineAudioPlayer';
 
 interface MessageBubbleProps {
   message: Message;
@@ -25,13 +24,9 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             : 'bg-slate-100 text-slate-900 rounded-bl-md'
         }`}
       >
-        {message.type === 'text' ? (
-          <p className="text-sm whitespace-pre-wrap break-words">
-            {message.content}
-          </p>
-        ) : (
-          <InlineAudioPlayer url={message.content} dark={isUser} />
-        )}
+        <p className="text-sm whitespace-pre-wrap break-words">
+          {message.content}
+        </p>
         <p
           className={`text-[10px] mt-1 ${
             isUser ? 'text-green-100' : 'text-slate-500'

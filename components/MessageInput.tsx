@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 
 interface MessageInputProps {
   onSendText: (text: string) => void;
   onSendAudio: (blob: Blob) => void;
   disabled?: boolean;
+  /** When this changes, the textarea is focused (e.g. after New Chat). */
+  focusTrigger?: number;
 }
 
 function formatElapsed(seconds: number): string {
@@ -19,9 +21,17 @@ export default function MessageInput({
   onSendText,
   onSendAudio,
   disabled,
+  focusTrigger,
 }: MessageInputProps) {
   const [text, setText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (focusTrigger != null && focusTrigger > 0) {
+      textareaRef.current?.focus();
+    }
+  }, [focusTrigger]);
   const {
     state: recordState,
     audioBlob,
@@ -129,6 +139,7 @@ export default function MessageInput({
         </svg>
       </button>
       <textarea
+        ref={textareaRef}
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
