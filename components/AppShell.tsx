@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import TopNavBar from './TopNavBar';
 
 interface LayoutContextValue {
@@ -25,14 +25,12 @@ export default function AppShell({
     setSidebarOpen((prev) => !prev);
   }, []);
 
-  import('react').then(({ useEffect }) => {
-    useEffect(() => {
-      // Auto-collapse sidebar on mobile
-      if (window.innerWidth < 640) {
-        setSidebarOpen(false);
-      }
-    }, []);
-  });
+  useEffect(() => {
+    // Auto-collapse sidebar on mobile
+    if (window.innerWidth < 640) {
+      setSidebarOpen(false);
+    }
+  }, []);
 
   return (
     <LayoutContext.Provider value={{ sidebarOpen, toggleSidebar }}>
