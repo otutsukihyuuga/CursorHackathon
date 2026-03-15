@@ -1,11 +1,12 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { blobToWav } from '@/lib/wavEncoder';
+import type { ClonedVoice } from '@/lib/types';
 
 // ── Upload helper ──────────────────────────────────────────
 
@@ -48,8 +49,33 @@ function VoicesContent() {
   const [uploadStatus, setUploadStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [converting, setConverting] = useState(false);
+  
+  const [clonedVoices, setClonedVoices] = useState<ClonedVoice[]>([]);
+  const [loadingVoices, setLoadingVoices] = useState(false);
+  const [deletingVoiceId, setDeletingVoiceId] = useState<number | string | null>(null);
 
   const recorder = useAudioRecorder();
+
+  const fetchVoices = useCallback(async () => {
+    if (!user?.id) return;
+    setLoadingVoices(true);
+    try {
+      const headers: HeadersInit = {};
+      const res = await fetch(`/api/users/${encodeURIComponent(user.id)}/cloned-voices`, { headers });
+      const data = await res.json().catch(() => []);
+      setClonedVoices(Array.isArray(data) ? data : []);
+    } catch {
+      setClonedVoices([]);
+    } finally {
+      setLoadingVoices(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchVoices();
+    }
+  }, [user?.id, fetchVoices]);
 
   useEffect(() => {
     // If navigated from chat "Add reference voice" button
@@ -88,12 +114,35 @@ function VoicesContent() {
       setVoiceName('');
       setVoiceDescription('');
       setShowForm(false);
+      await fetchVoices(); // Refresh the list
       recorder.reset();
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
       setUploadStatus({ ok: false, message: err instanceof Error ? err.message : 'Upload failed' });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDeleteVoice = async (voiceId: number | string) => {
+    if (!user?.id) return;
+    if (!window.confirm('Are you sure you want to delete this cloned voice?')) return;
+    
+    setDeletingVoiceId(voiceId);
+    try {
+      // Use the generic /api/proxy endpoint if a specific delete endpoint doesn't exist,
+      // or we can construct a direct fetch against the backend.
+      // Based on typical REST, let's assume DELETE /users/:id/cloned-voices/:voiceId
+      const res = await fetch(`/api/proxy?path=/users/${user.id}/cloned-voices/${voiceId}`, {
+        method: 'DELETE',
+        headers: { 'X-User-Id': String(user.id) },
+      });
+      if (!res.ok) throw new Error('Failed to delete voice');
+      await fetchVoices();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error deleting voice');
+    } finally {
+      setDeletingVoiceId(null);
     }
   };
 
@@ -117,7 +166,60 @@ function VoicesContent() {
           </p>
         </div>
 
-        {/* ── Voice Cloning Section ───────────────────────── */}
+        {/* ── Existing Voices Section ───────────────────────── */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4 px-1">Your Voices</h2>
+          {loadingVoices ? (
+            <div className="animate-pulse flex gap-4 overflow-x-auto pb-4 px-1">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="min-w-[240px] h-24 bg-slate-200 rounded-2xl flex-shrink-0" />
+              ))}
+            </div>
+          ) : clonedVoices.length === 0 ? (
+            <div className="text-center py-10 bg-white/50 border border-slate-200 border-dashed rounded-2xl">
+              <p className="text-slate-500">You haven't cloned any voices yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {clonedVoices.map((voice) => (
+                <div key={String(voice.id)} className="group relative bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center border border-indigo-50">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" x2="12" y1="19" y2="22" />
+                      </svg>
+                    </div>
+                    
+                    <button
+                      onClick={() => handleDeleteVoice(voice.id)}
+                      disabled={deletingVoiceId === voice.id}
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                      aria-label="Delete voice"
+                      title="Delete voice"
+                    >
+                      {deletingVoiceId === voice.id ? (
+                        <span className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin inline-block" />
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <h3 className="font-semibold text-slate-800">{voice.voice_name ?? voice.name ?? voice.display_name ?? `Voice ${voice.id}`}</h3>
+                  <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+                    {voice.description ? voice.description : 'No description provided.'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Voice Cloning Form Section ───────────────────────── */}
         <section className="rounded-2xl bg-white/70 backdrop-blur-sm border border-slate-200/80 shadow-sm p-6 sm:p-8">
           <div className="flex items-start gap-4 mb-6">
             <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
@@ -247,7 +349,7 @@ function VoicesContent() {
                       {selectedFile ? (
                         <span className="text-indigo-600 font-semibold text-base">{selectedFile.name}</span>
                       ) : (
-                        <>Drag and drop a <span className="font-semibold text-slate-700">.wav</span> file or click to browse</>
+                        <span>Drag and drop a <span className="font-semibold text-slate-700">.wav</span> file or click to browse</span>
                       )}
                     </p>
                   </div>
