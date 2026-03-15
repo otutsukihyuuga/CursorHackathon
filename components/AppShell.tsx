@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import TopNavBar from './TopNavBar';
 
 interface LayoutContextValue {
@@ -20,10 +21,12 @@ export default function AppShell({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
   }, []);
+  const isAuthRoute = pathname === '/auth';
 
   useEffect(() => {
     // Auto-collapse sidebar on mobile
@@ -34,9 +37,11 @@ export default function AppShell({
 
   return (
     <LayoutContext.Provider value={{ sidebarOpen, toggleSidebar }}>
-      <div className="h-screen flex flex-col">
-        <TopNavBar />
-        <main className="flex-1 min-h-0 flex flex-col overflow-hidden">{children}</main>
+      <div className={isAuthRoute ? 'min-h-screen' : 'min-h-screen flex flex-col'}>
+        {!isAuthRoute && <TopNavBar />}
+        <main className={isAuthRoute ? 'min-h-screen' : 'flex-1 min-h-0 flex flex-col overflow-y-auto'}>
+          {children}
+        </main>
       </div>
     </LayoutContext.Provider>
   );
