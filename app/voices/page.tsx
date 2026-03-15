@@ -211,7 +211,7 @@ function VoicesContent() {
                   </div>
                   <h3 className="font-semibold text-slate-800">{voice.voice_name ?? voice.name ?? voice.display_name ?? `Voice ${voice.id}`}</h3>
                   <p className="text-sm text-slate-500 mt-1 line-clamp-2">
-                    {voice.description ? voice.description : 'No description provided.'}
+                    {voice.description ?? voice.voice_description ?? 'No description provided.'}
                   </p>
                 </div>
               ))}
@@ -284,6 +284,15 @@ function VoicesContent() {
                 <label className="block text-sm font-medium text-slate-700 mb-3">
                   Audio (.wav) <span className="text-red-400">*</span>
                 </label>
+
+                <div className="mb-4 rounded-xl border border-indigo-100 bg-indigo-50/70 p-4">
+                  <p className="text-sm font-medium text-indigo-900">Sample script for recording</p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                    Hi, my name is X, and this is a sample of my voice for a speech generation. I am speaking
+                    in a calm and natural tone with a clear pronunciation and a steady pace. Today is a nice
+                    day, and I am testing how well this system can reproduce the sound of my voice.
+                  </p>
+                </div>
 
                 {/* Record + controls */}
                 <div className="flex flex-wrap items-center gap-3 mb-4">
