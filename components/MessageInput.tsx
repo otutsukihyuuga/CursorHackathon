@@ -151,7 +151,7 @@ export default function MessageInput({
   }
 
   const displayName = (v: ClonedVoice) =>
-    v.name ?? v.display_name ?? (typeof v.id === 'number' ? `Voice ${v.id}` : String(v.id));
+    v.voice_name ?? v.name ?? v.display_name ?? (typeof v.id === 'number' ? `Voice ${v.id}` : String(v.id));
 
   return (
     <div className="flex items-center gap-2 p-3 border-t border-slate-200 bg-white">

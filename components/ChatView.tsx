@@ -1,35 +1,18 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useChat } from '@/context/ChatContext';
 import { transcribeAudio } from '@/lib/transcribe';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 
-const AUDIO_TYPES = [
-  'audio/mpeg',
-  'audio/wav',
-  'audio/ogg',
-  'audio/webm',
-  'audio/mp4',
-  'audio/aac',
-  'audio/flac',
-  'audio/x-m4a',
-];
-
-function isAudioFile(file: File) {
-  return (
-    AUDIO_TYPES.includes(file.type) ||
-    /\.(mp3|wav|ogg|webm|mp4|m4a|aac|flac)$/i.test(file.name)
-  );
-}
-
 export default function ChatView() {
+  const router = useRouter();
   const { user, token } = useAuth();
-  const { chats, selectedChatId, addMessage, addReferenceAudio, deleteChat, focusMessageInputTrigger } =
+  const { chats, selectedChatId, addMessage, deleteChat, focusMessageInputTrigger } =
     useChat();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [transcribeError, setTranscribeError] = useState<string | null>(null);
   const chat = chats.find((c) => c.id === selectedChatId);
 
@@ -133,21 +116,8 @@ export default function ChatView() {
             <p className="mt-1">Send a text or voice message to get started.</p>
             {!chat.referenceAudioDataUrl && (
               <div className="mt-4">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="audio/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file && isAudioFile(file) && selectedChatId) {
-                      await addReferenceAudio(selectedChatId, file, file.name);
-                    }
-                    e.target.value = '';
-                  }}
-                />
                 <button
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => router.push('/profile?cloneVoice=1')}
                   className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium"
                 >
                   Add reference voice

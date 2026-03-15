@@ -16,6 +16,7 @@ export interface Chat {
 export interface ClonedVoice {
   id: string | number;
   name?: string;
+  voice_name?: string;
   display_name?: string;
   audio_url?: string;
   [key: string]: unknown;

@@ -1,6 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
@@ -31,6 +32,7 @@ async function uploadClonedVoice({
 }
 
 export default function ProfilePage() {
+  const searchParams = useSearchParams();
   const { user, signOut } = useAuth();
   const { loading } = useRequireAuth();
 
@@ -44,6 +46,12 @@ export default function ProfilePage() {
   const [converting, setConverting] = useState(false);
 
   const recorder = useAudioRecorder();
+
+  useEffect(() => {
+    if (searchParams.get('cloneVoice') === '1') {
+      setShowForm(true);
+    }
+  }, [searchParams]);
 
   const handleUseRecording = async () => {
     if (!recorder.audioBlob) return;
