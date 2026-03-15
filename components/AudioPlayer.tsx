@@ -83,9 +83,9 @@ export default function AudioPlayer({ url, label }: AudioPlayerProps) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-sm">
       {label && (
-        <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">{label}</p>
+        <p className="text-xs text-slate-600 font-medium uppercase tracking-wider">{label}</p>
       )}
 
       {/* Hidden native audio element — we build custom controls on top */}
@@ -114,14 +114,14 @@ export default function AudioPlayer({ url, label }: AudioPlayerProps) {
 
         {/* Seek scrubber + time */}
         <div className="flex-1 flex items-center gap-2">
-          <span className="text-xs text-slate-400 tabular-nums w-8 flex-shrink-0">
+          <span className="text-xs text-slate-600 tabular-nums w-8 flex-shrink-0">
             {formatTime(currentTime)}
           </span>
 
           <div className="relative flex-1 flex items-center">
             {/* Track background */}
             <div className="absolute inset-y-0 left-0 right-0 flex items-center pointer-events-none">
-              <div className="w-full h-1 bg-white/10 rounded-full">
+              <div className="w-full h-1 bg-slate-200 rounded-full">
                 <div
                   className="h-full bg-purple-500 rounded-full"
                   style={{ width: `${progress}%` }}
@@ -140,7 +140,7 @@ export default function AudioPlayer({ url, label }: AudioPlayerProps) {
             />
           </div>
 
-          <span className="text-xs text-slate-400 tabular-nums w-8 text-right flex-shrink-0">
+          <span className="text-xs text-slate-600 tabular-nums w-8 text-right flex-shrink-0">
             {formatTime(duration)}
           </span>
         </div>

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617; /* slate-950 */
-  --foreground: #f1f5f9; /* slate-100 */
+  --background: #f8fafc; /* slate-50 */
+  --foreground: #0f172a; /* slate-900 */
 }
 
 body {
@@ -46,12 +46,12 @@ input[type='range']::-moz-range-thumb {
 
 input[type='range']::-webkit-slider-runnable-track {
   height: 3px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #e2e8f0; /* slate-200 */
   border-radius: 9999px;
 }
 
 input[type='range']::-moz-range-track {
   height: 3px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #e2e8f0;
   border-radius: 9999px;
 }

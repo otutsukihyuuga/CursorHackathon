@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import NavBar from '@/components/NavBar';
+import AppShell from '@/components/AppShell';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'EchoVoice — Preserve the voices you love',
+  title: 'EchoVoice — Chat with voice',
   description:
-    'Upload a loved one\u2019s voice and ask questions answered in their voice. A living memory you can return to.',
+    'Upload a reference audio to create a chat. Send text or voice messages.',
 };
 
 export default function RootLayout({
@@ -27,10 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-slate-950`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
-        <NavBar />
-        <main>{children}</main>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
